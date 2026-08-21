@@ -1,17 +1,253 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Como ser uma pessoa saudavel</title>
-    <h1>Beber agua</h1>
-    <p>Uma das coisas que mais fazem voce uma pessoa saudavel e basica agua, ela ajuda na digestao dos alimentos, na filtracao da urina que faz muito bem para o rim e aumenta o oxigenio no cerebro.</p>
-    <h2>Atividade Fisica</h2>
-    <p>Coracao forte: Melhora a circulacao sanguinea e diminui o risco de doencas cardiacas.Controle de peso: Ajuda a gastar energia e manter o corpo ativo.Bem-estar mental: Libera hormonios que reduzem o estresse e melhoram o humor. E tudo isso ajuda por conta da atividade fisica como calistenia, musculacao, esportes e etc.</p>
-    <h3>Comer bem e ter uma otima dieta</h3>
-    <p>Comida de verdade: Baseie suas refeicoes em alimentos in natura ou minimamente processados, como legumes, verduras, frutas, feijao e cereais integrais. Reducao de ultraprocessados: Evite ao maximo refrigerantes, salgadinhos, embutidos e produtos prontos ricos em sodio, gordura trans e acucares adicionados.</p>
+    <title>Cuidar+ | Saúde e Bem-Estar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #008080;
+            --primary-dark: #005959;
+            --secondary: #e0f2f1;
+            --text: #333333;
+            --light: #ffffff;
+        }
+
+        body {
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Header & Navegação */
+        header {
+            background-color: var(--light);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: var(--light);
+            padding: 0.6rem 1.2rem;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(0,128,128,0.1), rgba(0,128,128,0.2)), url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=80') center/cover;
+            padding: 6rem 2rem;
+            text-align: center;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2.5rem;
+            border-radius: 10px;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Serviços */
+        .services {
+            max-width: 1200px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2rem;
+            color: var(--primary-dark);
+            margin-bottom: 2rem;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .service-card {
+            background: var(--secondary);
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .service-card h3 {
+            color: var(--primary-dark);
+            margin-bottom: 0.8rem;
+        }
+
+        /* Contato */
+        .contact {
+            background-color: #f9f9f9;
+            padding: 4rem 2rem;
+        }
+
+        .contact-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        /* Rodapé */
+        footer {
+            background-color: var(--primary-dark);
+            color: var(--light);
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    
+
+    <header>
+        <nav>
+            <div class="logo">Cuidar+ Saúde</div>
+            <ul class="nav-links">
+                <li><a href="#inicio">Início</a></li>
+                <li><a href="#servicos">Serviços</a></li>
+                <li><a href="#sobre">Sobre Nós</a></li>
+                <li><a href="#contato">Contato</a></li>
+            </ul>
+            <a href="#contato" class="btn">Agendar Consulta</a>
+        </nav>
+    </header>
+
+    <section id="inicio" class="hero">
+        <div class="hero-content">
+            <h1>Cuidado Humanizado e Profissional</h1>
+            <p>Oferecemos atenção médica e acompanhamento personalizado para você e sua família, no conforto do seu lar ou em nossa estrutura.</p>
+            <a href="#servicos" class="btn">Conheça nossos serviços</a>
+        </div>
+    </section>
+
+    <section id="servicos" class="services">
+        <h2 class="section-title">Nossos Serviços</h2>
+        <div class="services-grid">
+            <div class="service-card">
+                <h3>Atendimento Domiciliar</h3>
+                <p>Equipe multiprofissional para acompanhamento e cuidados no conforto de casa.</p>
+            </div>
+            <div class="service-card">
+                <h3>Acompanhamento Idoso</h3>
+                <p>Cuidado especializado para a terceira idade, focando em autonomia e bem-estar.</p>
+            </div>
+            <div class="service-card">
+                <h3>Enfermagem 24h</h3>
+                <p>Assistência contínua com profissionais qualificados para procedimentos e medicação.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="contato" class="contact">
+        <div class="contact-container">
+            <h2 class="section-title">Entre em Contato</h2>
+            <form>
+                <div class="form-group">
+                    <label for="nome">Nome Completo</label>
+                    <input type="text" id="nome" placeholder="Seu nome" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" placeholder="seu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="mensagem">Mensagem</label>
+                    <textarea id="mensagem" rows="4" placeholder="Como podemos ajudar?" required></textarea>
+                </div>
+                <button type="submit" class="btn" style="width: 100%; border: none; cursor: pointer;">Enviar Mensagem</button>
+            </form>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Cuidar+ Saúde. Todos os direitos reservados.</p>
+    </footer>
+
 </body>
 </html>
