@@ -1,255 +1,37 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Desafio do Memória - Jogo Competitivo</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #e8f5e9;
-            color: #1b5e20;
-            margin: 0;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .box {
-            background-color: #ffffff;
-            border: 2px solid #2e7d32;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-        }
-
-        h1 {
-            margin: 0 0 10px 0;
-            font-size: 24px;
-        }
-
-        .hud {
-            display: flex;
-            justify-content: space-around;
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .card {
-            aspect-ratio: 1;
-            background-color: #a5d6a7;
-            border: 2px solid #2e7d32;
-            border-radius: 8px;
-            font-size: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            user-select: none;
-            transition: transform 0.2s, background-color 0.2s;
-        }
-
-        .card:hover {
-            transform: scale(1.03);
-        }
-
-        .card.flipped {
-            background-color: #ffffff;
-            cursor: default;
-        }
-
-        .card.matched {
-            background-color: #c8e6c9;
-            border-color: #81c784;
-            cursor: default;
-        }
-
-        .btn {
-            background-color: #388e3c;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .btn:hover {
-            background-color: #2e7d32;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Jogo de Tiro 1v1</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #fff;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    canvas {
+      border: 4px solid #fff;
+      background-color: #1e1e1e;
+    }
+    .placar {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    .instrucoes {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #ccc;
+    }
+  </style>
 </head>
 <body>
 
-    <div class="container">
-        <!-- Título -->
-        <div class="box">
-            <h1>Desafio da Memória Saudável 🧠</h1>
-            <p>Encontre os pares no menor tempo e com menos tentativas!</p>
-        </div>
-
-        <!-- Painel de Informações / Placar -->
-        <div class="box hud">
-            <div>⏱️ Tempo: <span id="timer">0</span>s</div>
-            <div>🎯 Jogadas: <span id="moves">0</span></div>
-            <div>🏆 Recorde: <span id="best-score">-</span></div>
-        </div>
-
-        <!-- Tabuleiro do Jogo -->
-        <div class="box">
-            <div class="grid" id="grid"></div>
-            <button class="btn" id="restartBtn">Reiniciar Jogo</button>
-        </div>
-    </div>
-
-    <script>
-        const items = ['🍎', '🥦', '🏃‍♂️', '💧', '😴', '🧘‍♀️', '🚴‍♂️', '🥗'];
-        let cards = [...items, ...items];
-        
-        let firstCard = null;
-        let secondCard = null;
-        let lockBoard = false;
-        let moves = 0;
-        let matches = 0;
-        let timer = 0;
-        let timerInterval = null;
-        let gameStarted = false;
-
-        const gridElement = document.getElementById('grid');
-        const movesElement = document.getElementById('moves');
-        const timerElement = document.getElementById('timer');
-        const bestScoreElement = document.getElementById('best-score');
-        const restartBtn = document.getElementById('restartBtn');
-
-        // Carrega recorde salvo
-        const savedRecord = localStorage.getItem('memory_record');
-        if (savedRecord) {
-            bestScoreElement.textContent = savedRecord + 's';
-        }
-
-        function shuffle(array) {
-            return array.sort(() => Math.random() - 0.5);
-        }
-
-        function startTimer() {
-            if (!gameStarted) {
-                gameStarted = true;
-                timerInterval = setInterval(() => {
-                    timer++;
-                    timerElement.textContent = timer;
-                }, 1000);
-            }
-        }
-
-        function stopTimer() {
-            clearInterval(timerInterval);
-        }
-
-        function initGame() {
-            stopTimer();
-            cards = shuffle([...items, ...items]);
-            gridElement.innerHTML = '';
-            moves = 0;
-            matches = 0;
-            timer = 0;
-            gameStarted = false;
-            lockBoard = false;
-            firstCard = null;
-            secondCard = null;
-
-            movesElement.textContent = moves;
-            timerElement.textContent = timer;
-
-            cards.forEach((item, index) => {
-                const card = document.createElement('div');
-                card.classList.add('card');
-                card.dataset.value = item;
-                card.dataset.index = index;
-                card.addEventListener('click', flipCard);
-                gridElement.appendChild(card);
-            });
-        }
-
-        function flipCard() {
-            if (lockBoard || this === firstCard || this.classList.contains('matched')) return;
-
-            startTimer();
-            this.textContent = this.dataset.value;
-            this.classList.add('flipped');
-
-            if (!firstCard) {
-                firstCard = this;
-                return;
-            }
-
-            secondCard = this;
-            moves++;
-            movesElement.textContent = moves;
-            checkMatch();
-        }
-
-        function checkMatch() {
-            const isMatch = firstCard.dataset.value === secondCard.dataset.value;
-            isMatch ? disableCards() : unflipCards();
-        }
-
-        function disableCards() {
-            firstCard.classList.add('matched');
-            secondCard.classList.add('matched');
-            matches++;
-
-            resetBoard();
-
-            if (matches === items.length) {
-                stopTimer();
-                setTimeout(() => {
-                    checkRecord();
-                    alert(`Parabéns! Você venceu em ${timer} segundos e ${moves} jogadas!`);
-                }, 300);
-            }
-        }
-
-        function unflipCards() {
-            lockBoard = true;
-            setTimeout(() => {
-                firstCard.textContent = '';
-                secondCard.textContent = '';
-                firstCard.classList.remove('flipped');
-                secondCard.classList.remove('flipped');
-                resetBoard();
-            }, 800);
-        }
-
-        function resetBoard() {
-            [firstCard, secondCard, lockBoard] = [null, null, false];
-        }
-
-        function checkRecord() {
-            const currentRecord = localStorage.getItem('memory_record');
-            if (!currentRecord || timer < parseInt(currentRecord)) {
-                localStorage.setItem('memory_record', timer);
-                bestScoreElement.textContent = timer + 's';
-                alert('🏆 Novo Recorde registrado!');
-            }
-        }
-
-        restartBtn.addEventListener('click', initGame);
-
-        // Inicializa na abertura
-        initGame();
-    </script>
-</body>
-</html>
+  <div class="placar">
+    <span style="color: #4CAF50;">Jogador 1: <span id="p1Score">0</span></span> | 
+    <span style="color: #FF5722;">Jogador
