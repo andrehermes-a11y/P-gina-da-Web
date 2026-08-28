@@ -27,6 +27,21 @@
       margin-top: 10px;
       font-size: 14px;
       color: #ccc;
+      text-align: center;
+    }
+    button {
+      margin-bottom: 15px;
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
     }
   </style>
 </head>
@@ -34,4 +49,164 @@
 
   <div class="placar">
     <span style="color: #4CAF50;">Jogador 1: <span id="p1Score">0</span></span> | 
-    <span style="color: #FF5722;">Jogador
+    <span style="color: #FF5722;">Jogador 2: <span id="p2Score">0</span></span>
+  </div>
+
+  <button id="btnStart" onclick="iniciarJogo()">CLIQUE AQUI PARA JOGAR</button>
+
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+
+  <div class="instrucoes">
+    <strong>Jogador 1 (Verde):</strong> W, A, S, D para mover | ESPAÇO para atirar<br>
+    <strong>Jogador 2 (Laranja):</strong> Setas para mover | ENTER para atirar
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const p1ScoreEl = document.getElementById('p1Score');
+    const p2ScoreEl = document.getElementById('p2Score');
+
+    let p1Score = 0;
+    let p2Score = 0;
+    let jogoRodando = false;
+
+    const keys = {};
+    window.addEventListener('keydown', e => keys[e.code] = true);
+    window.addEventListener('keyup', e => keys[e.code] = false);
+
+    class Player {
+      constructor(x, y, color, isPlayerOne) {
+        this.x = x;
+        this.y = y;
+        this.size = 20;
+        this.color = color;
+        this.speed = 4;
+        this.isPlayerOne = isPlayerOne;
+        this.canShoot = true;
+      }
+
+      draw() {
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, this.size, this.size);
+      }
+
+      update() {
+        if (this.isPlayerOne) {
+          if (keys['KeyW'] && this.y > 0) this.y -= this.speed;
+          if (keys['KeyS'] && this.y < canvas.height - this.size) this.y += this.speed;
+          if (keys['KeyA'] && this.x > 0) this.x -= this.speed;
+          if (keys['KeyD'] && this.x < canvas.width / 2 - this.size) this.x += this.speed;
+
+          if (keys['Space'] && this.canShoot) {
+            bullets.push(new Bullet(this.x + this.size, this.y + this.size / 2, 8, this.color, 1));
+            this.canShoot = false;
+            setTimeout(() => this.canShoot = true, 250);
+          }
+        } else {
+          if (keys['ArrowUp'] && this.y > 0) this.y -= this.speed;
+          if (keys['ArrowDown'] && this.y < canvas.height - this.size) this.y += this.speed;
+          if (keys['ArrowLeft'] && this.x > canvas.width / 2) this.x -= this.speed;
+          if (keys['ArrowRight'] && this.x < canvas.width - this.size) this.x += this.speed;
+
+          if (keys['Enter'] && this.canShoot) {
+            bullets.push(new Bullet(this.x, this.y + this.size / 2, -8, this.color, 2));
+            this.canShoot = false;
+            setTimeout(() => this.canShoot = true, 250);
+          }
+        }
+      }
+    }
+
+    class Bullet {
+      constructor(x, y, speedX, color, owner) {
+        this.x = x;
+        this.y = y;
+        this.radius = 4;
+        this.speedX = speedX;
+        this.color = color;
+        this.owner = owner;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.closePath();
+      }
+
+      update() {
+        this.x += this.speedX;
+      }
+    }
+
+    let p1 = new Player(50, canvas.height / 2 - 10, '#4CAF50', true);
+    let p2 = new Player(canvas.width - 70, canvas.height / 2 - 10, '#FF5722', false);
+    let bullets = [];
+
+    function checkCollision(bullet, player) {
+      return bullet.x > player.x &&
+             bullet.x < player.x + player.size &&
+             bullet.y > player.y &&
+             bullet.y < player.y + player.size;
+    }
+
+    function resetPositions() {
+      p1.x = 50;
+      p1.y = canvas.height / 2 - 10;
+      p2.x = canvas.width - 70;
+      p2.y = canvas.height / 2 - 10;
+      bullets = [];
+    }
+
+    function gameLoop() {
+      if (!jogoRodando) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(canvas.width / 2, 0);
+      ctx.lineTo(canvas.width / 2, canvas.height);
+      ctx.stroke();
+
+      p1.update();
+      p1.draw();
+      p2.update();
+      p2.draw();
+
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        let b = bullets[i];
+        b.update();
+        b.draw();
+
+        if (b.owner === 1 && checkCollision(b, p2)) {
+          p1Score++;
+          p1ScoreEl.textContent = p1Score;
+          resetPositions();
+          break;
+        } else if (b.owner === 2 && checkCollision(b, p1)) {
+          p2Score++;
+          p2ScoreEl.textContent = p2Score;
+          resetPositions();
+          break;
+        }
+
+        if (b.x < 0 || b.x > canvas.width) {
+          bullets.splice(i, 1);
+        }
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    function iniciarJogo() {
+      document.getElementById('btnStart').style.display = 'none';
+      jogoRodando = true;
+      gameLoop();
+    }
+  </script>
+</body>
+</html>
