@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clone do Minecraft Básico</title>
+    <title>Clone Minecraft Simples</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
             font-family: sans-serif;
+            user-select: none;
         }
         #crosshair {
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             background-color: white;
             transform: translate(-50%, -50%);
             border-radius: 50%;
@@ -27,19 +28,159 @@
             top: 20px;
             left: 20px;
             color: white;
-            background: rgba(0,0,0,0.5);
-            padding: 10px;
-            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <div id="crosshair"></div>
     <div id="instructions">
-        Clique na tela para jogar<br>
+        <h3>Clique aqui para jogar</h3>
         <b>W, A, S, D</b>: Mover<br>
-        <b>Clique Esquerdo</b>: Destruir bloco<br>
+        <b>Mouse</b>: Olhar ao redor<br>
+        <b>Clique Esquerdo</b>: Quebrar bloco<br>
         <b>Clique Direito</b>: Colocar bloco
     </div>
 
-    <script src="
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87ceeb);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Luzes
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(10, 20, 15);
+        scene.add(dirLight);
+
+        // Terreno
+        const blockGeometry = new THREE.BoxGeometry(1, 1, 1);
+        const blockMaterial = new THREE.MeshLambertMaterial({ color: 0x4d8c22 });
+        const blocks = [];
+
+        for (let x = -6; x <= 6; x++) {
+            for (let z = -6; z <= 6; z++) {
+                const block = new THREE.Mesh(blockGeometry, blockMaterial);
+                block.position.set(x, 0, z);
+                scene.add(block);
+                blocks.push(block);
+            }
+        }
+
+        // Posição Inicial do Jogador
+        camera.position.set(0, 1.8, 0);
+
+        // Controles de Câmera e Trava de Mouse
+        let isLocked = false;
+        let yaw = 0;
+        let pitch = 0;
+        const instructions = document.getElementById('instructions');
+
+        instructions.addEventListener('click', () => {
+            document.body.requestPointerLock();
+        });
+
+        document.addEventListener('pointerlockchange', () => {
+            if (document.pointerLockElement === document.body) {
+                isLocked = true;
+                instructions.style.display = 'none';
+            } else {
+                isLocked = false;
+                instructions.style.display = 'block';
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isLocked) return;
+
+            yaw -= e.movementX * 0.002;
+            pitch -= e.movementY * 0.002;
+
+            pitch = Math.max(-Math.PI / 2 + 0.1, Math.min(Math.PI / 2 - 0.1, pitch));
+
+            const euler = new THREE.Euler(pitch, yaw, 0, 'YXZ');
+            camera.quaternion.setFromEuler(euler);
+        });
+
+        // Movimento (Teclas)
+        const keys = {};
+        document.addEventListener('keydown', (e) => keys[e.code] = true);
+        document.addEventListener('keyup', (e) => keys[e.code] = false);
+
+        // Ações de Colocar / Remover Blocos
+        const raycaster = new THREE.Raycaster();
+        const center = new THREE.Vector2(0, 0);
+
+        window.addEventListener('mousedown', (e) => {
+            if (!isLocked) return;
+
+            raycaster.setFromCamera(center, camera);
+            const intersects = raycaster.intersectObjects(blocks);
+
+            if (intersects.length > 0) {
+                const intersect = intersects[0];
+
+                if (e.button === 0) {
+                    // Clique Esquerdo: Destruir
+                    scene.remove(intersect.object);
+                    blocks.splice(blocks.indexOf(intersect.object), 1);
+                } else if (e.button === 2) {
+                    // Clique Direito: Criar
+                    const newBlock = new THREE.Mesh(blockGeometry, blockMaterial);
+                    const position = intersect.point.clone().add(intersect.face.normal.clone().multiplyScalar(0.5));
+                    newBlock.position.set(
+                        Math.floor(position.x) + 0.5,
+                        Math.floor(position.y) + 0.5,
+                        Math.floor(position.z) + 0.5
+                    );
+                    scene.add(newBlock);
+                    blocks.push(newBlock);
+                }
+            }
+        });
+
+        window.addEventListener('contextmenu', (e) => e.preventDefault());
+
+        // Loop Principal do Jogo
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (isLocked) {
+                const speed = 0.1;
+                const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+                const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+                
+                // Manter o movimento no plano horizontal
+                forward.y = 0; forward.normalize();
+                right.y = 0; right.normalize();
+
+                if (keys['KeyW']) camera.position.addScaledVector(forward, speed);
+                if (keys['KeyS']) camera.position.addScaledVector(forward, -speed);
+                if (keys['KeyA']) camera.position.addScaledVector(right, -speed);
+                if (keys['KeyD']) camera.position.addScaledVector(right, speed);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Redimensionamento
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
