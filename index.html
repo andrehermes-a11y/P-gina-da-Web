@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Free Fire 1v1 - Battle Royale Arena</title>
+  <title>Free Fire 1v1 - Personagens Humanos</title>
   <style>
     body {
       background-color: #0b0f19;
@@ -135,7 +135,7 @@
 
   <div class="hud">
     <div class="player-card p1">
-      <h2>JOGADOR 1 (SQUAD VERDE)</h2>
+      <h2>JOGADOR 1 (SOLDADO VERDE)</h2>
       <div class="bar-container">
         <span class="label">VIDA</span>
         <div class="bar"><div id="p1Health" class="fill hp"></div></div>
@@ -154,7 +154,7 @@
     <div class="vs-badge">FF 1V1</div>
 
     <div class="player-card p2">
-      <h2>JOGADOR 2 (SQUAD LARANJA)</h2>
+      <h2>JOGADOR 2 (SOLDADO LARANJA)</h2>
       <div class="bar-container">
         <span class="label">VIDA</span>
         <div class="bar"><div id="p2Health" class="fill hp"></div></div>
@@ -207,7 +207,6 @@
     window.addEventListener('keydown', e => keys[e.code] = true);
     window.addEventListener('keyup', e => keys[e.code] = false);
 
-    // Sistema de Safezone (Gás)
     let safezone = {
       x: 0,
       y: 0,
@@ -223,7 +222,8 @@
       constructor(x, y, color, isPlayerOne) {
         this.x = x;
         this.y = y;
-        this.radius = 16;
+        this.width = 24;
+        this.height = 40;
         this.color = color;
         this.speed = 4;
         this.isPlayerOne = isPlayerOne;
@@ -237,7 +237,7 @@
         this.canSkill = true;
         
         this.skillActive = false;
-        this.skillTimer = 0;
+        this.animFrame = 0;
       }
 
       draw() {
@@ -247,7 +247,7 @@
         // Aura de Habilidade Ativa
         if (this.skillActive) {
           ctx.beginPath();
-          ctx.arc(0, 0, this.radius + 12, 0, Math.PI * 2);
+          ctx.arc(0, 0, 30, 0, Math.PI * 2);
           ctx.fillStyle = this.isPlayerOne ? 'rgba(34, 197, 94, 0.25)' : 'rgba(59, 130, 246, 0.3)';
           ctx.fill();
           ctx.strokeStyle = this.isPlayerOne ? '#22c55e' : '#3b82f6';
@@ -255,27 +255,56 @@
           ctx.stroke();
         }
 
-        // Corpo do Personagem
+        const facing = this.isPlayerOne ? 1 : -1;
+
+        // Cabeça (Pele)
+        ctx.fillStyle = '#ffdbac';
         ctx.beginPath();
-        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+        ctx.arc(0, -14, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Cabelo / Boné
+        ctx.fillStyle = '#1e293b';
+        ctx.beginPath();
+        ctx.arc(0, -16, 8, Math.PI, 0);
+        ctx.fill();
+
+        // Olhos
+        ctx.fillStyle = '#000';
+        ctx.fillRect(facing * 3, -16, 2, 3);
+
+        // Tronco / Colete
         ctx.fillStyle = this.color;
-        ctx.fill();
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = '#000000';
-        ctx.stroke();
+        ctx.fillRect(-8, -6, 16, 18);
 
-        // Capacete/Cabeça
-        ctx.beginPath();
-        ctx.arc(0, 0, this.radius - 6, 0, Math.PI * 2);
+        // Colete de proteção (se tiver armadura)
+        if (this.armor > 0) {
+          ctx.fillStyle = '#3b82f6';
+          ctx.fillRect(-6, -4, 12, 12);
+        }
+
+        // Pernas
         ctx.fillStyle = '#334155';
-        ctx.fill();
+        ctx.fillRect(-7, 12, 5, 12);
+        ctx.fillRect(2, 12, 5, 12);
 
-        // Arma
+        // Botas
         ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-8, 22, 6, 4);
+        ctx.fillRect(2, 22, 6, 4);
+
+        // Braços segurando o rifle
+        ctx.fillStyle = '#ffdbac';
+        ctx.fillRect(facing * 4, -2, 6, 4);
+
+        // Arma (Rifle)
+        ctx.fillStyle = '#1e293b';
         if (this.isPlayerOne) {
-          ctx.fillRect(6, -3, 18, 6);
+          ctx.fillRect(4, -4, 20, 5);
+          ctx.fillRect(8, 1, 4, 4);
         } else {
-          ctx.fillRect(-24, -3, 18, 6);
+          ctx.fillRect(-24, -4, 20, 5);
+          ctx.fillRect(-12, 1, 4, 4);
         }
 
         ctx.restore();
@@ -285,17 +314,20 @@
         let nextX = this.x + dx;
         let nextY = this.y + dy;
 
-        if (nextX >= this.radius && nextX <= canvas.width - this.radius) {
-          if (!checkGelCollision(nextX, this.y, this.radius)) this.x = nextX;
+        const halfW = this.width / 2;
+        const halfH = this.height / 2;
+
+        if (nextX >= halfW && nextX <= canvas.width - halfW) {
+          if (!checkGelCollision(nextX, this.y, halfW, halfH)) this.x = nextX;
         }
-        if (nextY >= this.radius && nextY <= canvas.height - this.radius) {
-          if (!checkGelCollision(this.x, nextY, this.radius)) this.y = nextY;
+        if (nextY >= halfH && nextY <= canvas.height - halfH) {
+          if (!checkGelCollision(this.x, nextY, halfW, halfH)) this.y = nextY;
         }
       }
 
       useGel() {
         if (this.gelCount > 0 && this.canGel) {
-          const wallX = this.isPlayerOne ? this.x + 35 : this.x - 45;
+          const wallX = this.isPlayerOne ? this.x + 30 : this.x - 42;
           gelWalls.push(new GelWall(wallX, this.y - 30));
           this.gelCount--;
           this.canGel = false;
@@ -309,19 +341,14 @@
           this.skillActive = true;
           this.canSkill = false;
           
-          if (this.isPlayerOne) {
-            p1SkillEl.textContent = 'ATIVO';
-          } else {
-            p2SkillEl.textContent = 'ATIVO';
-          }
+          if (this.isPlayerOne) p1SkillEl.textContent = 'ATIVO';
+          else p2SkillEl.textContent = 'ATIVO';
 
-          // Duração da habilidade: 5s
           setTimeout(() => {
             this.skillActive = false;
             if (this.isPlayerOne) p1SkillEl.textContent = 'RECARREGANDO';
             else p2SkillEl.textContent = 'RECARREGANDO';
 
-            // Cooldown: 12s
             setTimeout(() => {
               this.canSkill = true;
               if (this.isPlayerOne) p1SkillEl.textContent = 'PRONTA';
@@ -344,13 +371,11 @@
           this.speed = 4;
         }
 
-        // Dano do Gás
         if (this.x < safezone.x || this.x > safezone.x + safezone.width ||
             this.y < safezone.y || this.y > safezone.y + safezone.height) {
           this.takeDamage(0.4, true);
         }
 
-        // Controles J1
         if (this.isPlayerOne) {
           let dx = 0, dy = 0;
           if (keys['KeyW']) dy -= this.speed;
@@ -360,15 +385,13 @@
           this.move(dx, dy);
 
           if (keys['Space'] && this.canShoot) {
-            bullets.push(new Bullet(this.x + 20, this.y, 12, this.color, 1));
+            bullets.push(new Bullet(this.x + 24, this.y - 2, 12, this.color, 1));
             this.canShoot = false;
             setTimeout(() => this.canShoot = true, 180);
           }
           if (keys['KeyQ']) this.useGel();
           if (keys['KeyE']) this.useSkill();
-        } 
-        // Controles J2
-        else {
+        } else {
           let dx = 0, dy = 0;
           if (keys['ArrowUp']) dy -= this.speed;
           if (keys['ArrowDown']) dy += this.speed;
@@ -377,7 +400,7 @@
           this.move(dx, dy);
 
           if (keys['Enter'] && this.canShoot) {
-            bullets.push(new Bullet(this.x - 20, this.y, -12, this.color, 2));
+            bullets.push(new Bullet(this.x - 24, this.y - 2, -12, this.color, 2));
             this.canShoot = false;
             setTimeout(() => this.canShoot = true, 180);
           }
@@ -450,10 +473,10 @@
     let p1 = new Character(80, canvas.height / 2, '#22c55e', true);
     let p2 = new Character(canvas.width - 80, canvas.height / 2, '#f97316', false);
 
-    function checkGelCollision(x, y, radius) {
+    function checkGelCollision(x, y, halfW, halfH) {
       for (let gel of gelWalls) {
-        if (x + radius > gel.x && x - radius < gel.x + gel.width &&
-            y + radius > gel.y && y - radius < gel.y + gel.height) {
+        if (x + halfW > gel.x && x - halfW < gel.x + gel.width &&
+            y + halfH > gel.y && y - halfH < gel.y + gel.height) {
           return true;
         }
       }
@@ -497,7 +520,6 @@
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Safezone / Gás
       if (safezone.width > 200) {
         safezone.x += safezone.shrinkRate;
         safezone.y += safezone.shrinkRate * (canvas.height / canvas.width);
@@ -540,7 +562,7 @@
         }
         if (hitGel) continue;
 
-        if (b.owner === 2 && Math.hypot(b.x - p1.x, b.y - p1.y) < b.radius + p1.radius) {
+        if (b.owner === 2 && Math.hypot(b.x - p1.x, b.y - p1.y) < b.radius + 15) {
           let damage = 22;
           p1.takeDamage(damage);
           bullets.splice(i, 1);
@@ -551,7 +573,7 @@
           continue;
         }
 
-        if (b.owner === 1 && Math.hypot(b.x - p2.x, b.y - p2.y) < b.radius + p2.radius) {
+        if (b.owner === 1 && Math.hypot(b.x - p2.x, b.y - p2.y) < b.radius + 15) {
           let damage = 22;
           if (p2.skillActive) damage *= 0.4;
           p2.takeDamage(damage);
