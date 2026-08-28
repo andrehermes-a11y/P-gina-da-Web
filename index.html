@@ -2,14 +2,10 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Free Fire 1v1 Arena</title>
+  <title>Jogo 3D - Labirinto Raycasting</title>
   <style>
-    * {
-      box-sizing: border-box;
-      user-select: none;
-    }
     body {
-      background-color: #0b0f19;
+      background-color: #0d1117;
       color: #fff;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
@@ -20,593 +16,143 @@
       margin: 0;
     }
 
-    .hud {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      margin-bottom: 15px;
-    }
-
-    .player-card {
-      background: rgba(15, 23, 42, 0.9);
-      border: 2px solid #334155;
-      padding: 12px 18px;
-      border-radius: 8px;
-      width: 260px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-    }
-
-    .player-card h2 {
-      font-size: 13px;
-      margin: 0 0 10px 0;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    .p1 h2 { color: #22c55e; }
-    .p2 h2 { color: #f97316; }
-
-    .bar-container {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-
-    .label {
-      font-size: 10px;
-      font-weight: bold;
-      width: 50px;
-      color: #94a3b8;
-    }
-
-    .bar {
-      flex-grow: 1;
-      height: 12px;
-      background-color: #1e293b;
-      border-radius: 4px;
-      overflow: hidden;
-      border: 1px solid #475569;
-    }
-
-    .fill {
-      height: 100%;
-      width: 100%;
-      transition: width 0.1s linear;
-    }
-
-    .fill.hp { background-color: #ef4444; }
-    .fill.armor { background-color: #3b82f6; }
-
-    .status {
-      font-size: 11px;
-      color: #cbd5e1;
-      margin-top: 8px;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .score {
-      font-size: 13px;
-      font-weight: bold;
-      margin: 8px 0 0 0;
-      color: #e2e8f0;
-    }
-
-    .vs-badge {
+    h1 {
+      margin-bottom: 10px;
       font-size: 24px;
-      font-weight: 900;
-      color: #eab308;
-      text-shadow: 0 0 10px rgba(234, 179, 8, 0.5);
+      color: #38bdf8;
     }
 
     canvas {
-      border: 3px solid #f59e0b;
-      background-color: #151d2a;
-      box-shadow: 0 0 25px rgba(245, 158, 11, 0.25);
-      border-radius: 6px;
+      border: 3px solid #0284c7;
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+      background-color: #000;
     }
 
-    .controls-container {
+    .controles {
       margin-top: 15px;
-      display: flex;
-      gap: 20px;
-      font-size: 12px;
-    }
-
-    .controls-box {
       background: #1e293b;
-      padding: 10px 15px;
+      padding: 12px 20px;
       border-radius: 6px;
-      border-left: 4px solid #f59e0b;
-    }
-
-    .controls-box strong {
-      color: #f59e0b;
-    }
-
-    #btnStart {
-      margin-bottom: 12px;
-      padding: 10px 24px;
-      font-size: 16px;
-      font-weight: bold;
-      background: linear-gradient(180deg, #f59e0b, #d97706);
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    }
-
-    #btnStart:hover {
-      filter: brightness(1.1);
+      border-left: 4px solid #38bdf8;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
 
-  <div class="hud">
-    <div class="player-card p1">
-      <h2>Soldado Verde (P1)</h2>
-      <div class="bar-container">
-        <span class="label">VIDA</span>
-        <div class="bar"><div id="p1Health" class="fill hp"></div></div>
-      </div>
-      <div class="bar-container">
-        <span class="label">COLETE</span>
-        <div class="bar"><div id="p1Armor" class="fill armor"></div></div>
-      </div>
-      <div class="status">
-        <span>GEL: <strong id="p1Gel">3</strong></span>
-        <span>HABILIDADE [E]: <strong id="p1Skill">PRONTA</strong></span>
-      </div>
-      <p class="score">KILLS: <span id="p1Score">0</span></p>
-    </div>
+  <h1>Labirinto 3D Retro</h1>
+  <canvas id="gameCanvas" width="640" height="400"></canvas>
 
-    <div class="vs-badge">VS</div>
-
-    <div class="player-card p2">
-      <h2>Soldado Laranja (P2)</h2>
-      <div class="bar-container">
-        <span class="label">VIDA</span>
-        <div class="bar"><div id="p2Health" class="fill hp"></div></div>
-      </div>
-      <div class="bar-container">
-        <span class="label">COLETE</span>
-        <div class="bar"><div id="p2Armor" class="fill armor"></div></div>
-      </div>
-      <div class="status">
-        <span>GEL: <strong id="p2Gel">3</strong></span>
-        <span>HABILIDADE [0]: <strong id="p2Skill">PRONTA</strong></span>
-      </div>
-      <p class="score">KILLS: <span id="p2Score">0</span></p>
-    </div>
-  </div>
-
-  <button id="btnStart" onclick="iniciarJogo()">INICIAR PARTIDA</button>
-
-  <canvas id="gameCanvas" width="900" height="500"></canvas>
-
-  <div class="controls-container">
-    <div class="controls-box">
-      <strong>Jogador 1 (Verde):</strong> WASD (Mover) | ESPAÇO (Atirar) | Q (Gel) | E (Cura)
-    </div>
-    <div class="controls-box">
-      <strong>Jogador 2 (Laranja):</strong> Setas (Mover) | ENTER (Atirar) | . (Gel) | 0 (Escudo)
-    </div>
+  <div class="controles">
+    <strong>Controles:</strong> W / S (Mover) | A / D (Girar Câmera)
   </div>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
-    const p1HealthEl = document.getElementById('p1Health');
-    const p2HealthEl = document.getElementById('p2Health');
-    const p1ArmorEl = document.getElementById('p1Armor');
-    const p2ArmorEl = document.getElementById('p2Armor');
-    const p1GelEl = document.getElementById('p1Gel');
-    const p2GelEl = document.getElementById('p2Gel');
-    const p1SkillEl = document.getElementById('p1Skill');
-    const p2SkillEl = document.getElementById('p2Skill');
-    const p1ScoreEl = document.getElementById('p1Score');
-    const p2ScoreEl = document.getElementById('p2Score');
+    const MAP_SIZE = 12;
+    const map = [
+      1,1,1,1,1,1,1,1,1,1,1,1,
+      1,0,0,0,1,0,0,0,0,0,0,1,
+      1,0,1,0,1,0,1,1,1,1,0,1,
+      1,0,1,0,0,0,0,0,0,1,0,1,
+      1,0,1,1,1,1,0,1,0,1,0,1,
+      1,0,0,0,0,1,0,1,0,0,0,1,
+      1,1,1,1,0,1,0,1,1,1,0,1,
+      1,0,0,0,0,0,0,0,0,1,0,1,
+      1,0,1,1,1,1,1,1,0,1,0,1,
+      1,0,1,0,0,0,0,1,0,1,0,1,
+      1,0,0,0,1,1,0,0,0,0,0,1,
+      1,1,1,1,1,1,1,1,1,1,1,1
+    ];
 
-    let p1Score = 0;
-    let p2Score = 0;
-    let jogoRodando = false;
+    let player = {
+      x: 2.5,
+      y: 2.5,
+      angle: 0,
+      speed: 0,
+      rotSpeed: 0
+    };
+
+    const FOV = Math.PI / 3;
+    const NUM_RAYS = canvas.width;
+    const HALF_HEIGHT = canvas.height / 2;
 
     const keys = {};
     window.addEventListener('keydown', e => keys[e.code] = true);
     window.addEventListener('keyup', e => keys[e.code] = false);
 
-    let safezone = {
-      x: 0,
-      y: 0,
-      width: canvas.width,
-      height: canvas.height,
-      shrinkRate: 0.12
-    };
+    function updatePlayer() {
+      player.rotSpeed = 0;
+      player.speed = 0;
 
-    let gelWalls = [];
-    let bullets = [];
+      if (keys['KeyA'] || keys['ArrowLeft']) player.rotSpeed = -0.04;
+      if (keys['KeyD'] || keys['ArrowRight']) player.rotSpeed = 0.04;
+      if (keys['KeyW'] || keys['ArrowUp']) player.speed = 0.05;
+      if (keys['KeyS'] || keys['ArrowDown']) player.speed = -0.05;
 
-    class Character {
-      constructor(x, y, color, isPlayerOne) {
-        this.x = x;
-        this.y = y;
-        this.width = 24;
-        this.height = 40;
-        this.color = color;
-        this.speed = 3.8;
-        this.isPlayerOne = isPlayerOne;
-        
-        this.health = 100;
-        this.armor = 100;
-        this.gelCount = 3;
-        
-        this.canShoot = true;
-        this.canGel = true;
-        this.canSkill = true;
-        
-        this.skillActive = false;
+      player.angle += player.rotSpeed;
+
+      let newX = player.x + Math.cos(player.angle) * player.speed;
+      let newY = player.y + Math.sin(player.angle) * player.speed;
+
+      // Colisão com paredes
+      if (map[Math.floor(newY) * MAP_SIZE + Math.floor(newX)] === 0) {
+        player.x = newX;
+        player.y = newY;
       }
+    }
 
-      draw() {
-        ctx.save();
-        ctx.translate(this.x, this.y);
+    function render3D() {
+      // Teto e Chão
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, canvas.width, HALF_HEIGHT);
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(0, HALF_HEIGHT, canvas.width, HALF_HEIGHT);
 
-        // Aura de Habilidade
-        if (this.skillActive) {
-          ctx.beginPath();
-          ctx.arc(0, 0, 28, 0, Math.PI * 2);
-          ctx.fillStyle = this.isPlayerOne ? 'rgba(34, 197, 94, 0.2)' : 'rgba(59, 130, 246, 0.25)';
-          ctx.fill();
-          ctx.strokeStyle = this.isPlayerOne ? '#22c55e' : '#3b82f6';
-          ctx.lineWidth = 2;
-          ctx.stroke();
-        }
+      // Renderização por Raycasting
+      for (let i = 0; i < NUM_RAYS; i++) {
+        let rayAngle = (player.angle - FOV / 2) + (i / NUM_RAYS) * FOV;
+        let distance = 0;
+        let hitWall = false;
 
-        const facing = this.isPlayerOne ? 1 : -1;
+        let cos = Math.cos(rayAngle);
+        let sin = Math.sin(rayAngle);
 
-        // Cabeça
-        ctx.fillStyle = '#ffdbac';
-        ctx.beginPath();
-        ctx.arc(0, -14, 8, 0, Math.PI * 2);
-        ctx.fill();
+        while (!hitWall && distance < 16) {
+          distance += 0.02;
+          let checkX = Math.floor(player.x + cos * distance);
+          let checkY = Math.floor(player.y + sin * distance);
 
-        // Cabelo / Capacete
-        ctx.fillStyle = '#1e293b';
-        ctx.beginPath();
-        ctx.arc(0, -16, 8, Math.PI, 0);
-        ctx.fill();
-
-        // Olhos
-        ctx.fillStyle = '#000';
-        ctx.fillRect(facing * 3, -16, 2, 3);
-
-        // Corpo
-        ctx.fillStyle = this.color;
-        ctx.fillRect(-8, -6, 16, 18);
-
-        // Colete Visual
-        if (this.armor > 0) {
-          ctx.fillStyle = '#3b82f6';
-          ctx.fillRect(-6, -4, 12, 12);
-        }
-
-        // Pernas
-        ctx.fillStyle = '#334155';
-        ctx.fillRect(-7, 12, 5, 12);
-        ctx.fillRect(2, 12, 5, 12);
-
-        // Botas
-        ctx.fillStyle = '#0f172a';
-        ctx.fillRect(-8, 22, 6, 4);
-        ctx.fillRect(2, 22, 6, 4);
-
-        // Braço e Arma
-        ctx.fillStyle = '#1e293b';
-        if (this.isPlayerOne) {
-          ctx.fillRect(4, -3, 18, 5);
-        } else {
-          ctx.fillRect(-22, -3, 18, 5);
-        }
-
-        ctx.restore();
-      }
-
-      move(dx, dy) {
-        let nextX = this.x + dx;
-        let nextY = this.y + dy;
-
-        const halfW = this.width / 2;
-        const halfH = this.height / 2;
-
-        if (nextX >= halfW && nextX <= canvas.width - halfW) {
-          if (!checkGelCollision(nextX, this.y, halfW, halfH)) this.x = nextX;
-        }
-        if (nextY >= halfH && nextY <= canvas.height - halfH) {
-          if (!checkGelCollision(this.x, nextY, halfW, halfH)) this.y = nextY;
-        }
-      }
-
-      useGel() {
-        if (this.gelCount > 0 && this.canGel) {
-          const wallX = this.isPlayerOne ? this.x + 25 : this.x - 37;
-          gelWalls.push(new GelWall(wallX, this.y - 30));
-          this.gelCount--;
-          this.canGel = false;
-          setTimeout(() => this.canGel = true, 400);
-          updateUI();
-        }
-      }
-
-      useSkill() {
-        if (this.canSkill) {
-          this.skillActive = true;
-          this.canSkill = false;
-          
-          if (this.isPlayerOne) p1SkillEl.textContent = 'ATIVO';
-          else p2SkillEl.textContent = 'ATIVO';
-
-          setTimeout(() => {
-            this.skillActive = false;
-            if (this.isPlayerOne) p1SkillEl.textContent = 'RECARREGANDO';
-            else p2SkillEl.textContent = 'RECARREGANDO';
-
-            setTimeout(() => {
-              this.canSkill = true;
-              if (this.isPlayerOne) p1SkillEl.textContent = 'PRONTA';
-              else p2SkillEl.textContent = 'PRONTA';
-              updateUI();
-            }, 10000);
-          }, 4000);
-        }
-      }
-
-      update() {
-        if (this.skillActive) {
-          if (this.isPlayerOne) {
-            if (this.health < 100) this.health += 0.15;
-            this.speed = 5.0;
-          } else {
-            this.speed = 3.8;
+          if (checkX < 0 || checkX >= MAP_SIZE || checkY < 0 || checkY >= MAP_SIZE) {
+            hitWall = true;
+            distance = 16;
+          } else if (map[checkY * MAP_SIZE + checkX] > 0) {
+            hitWall = true;
           }
-        } else {
-          this.speed = 3.8;
         }
 
-        // Dano por ficar fora da Safezone
-        if (this.x < safezone.x || this.x > safezone.x + safezone.width ||
-            this.y < safezone.y || this.y > safezone.y + safezone.height) {
-          this.takeDamage(0.3, true);
-        }
+        // Correção do efeito de olho de peixe
+        let correctDistance = distance * Math.cos(rayAngle - player.angle);
+        let wallHeight = Math.min(canvas.height, (canvas.height / correctDistance));
 
-        if (this.isPlayerOne) {
-          let dx = 0, dy = 0;
-          if (keys['KeyW']) dy -= this.speed;
-          if (keys['KeyS']) dy += this.speed;
-          if (keys['KeyA']) dx -= this.speed;
-          if (keys['KeyD']) dx += this.speed;
-          this.move(dx, dy);
+        // Sombreamento baseado na distância
+        let colorValue = Math.max(0, 255 - correctDistance * 18);
+        ctx.fillStyle = `rgb(0, ${Math.floor(colorValue * 0.7)}, ${colorValue})`;
 
-          if (keys['Space'] && this.canShoot) {
-            bullets.push(new Bullet(this.x + 22, this.y - 2, 11, this.color, 1));
-            this.canShoot = false;
-            setTimeout(() => this.canShoot = true, 200);
-          }
-          if (keys['KeyQ']) this.useGel();
-          if (keys['KeyE']) this.useSkill();
-        } else {
-          let dx = 0, dy = 0;
-          if (keys['ArrowUp']) dy -= this.speed;
-          if (keys['ArrowDown']) dy += this.speed;
-          if (keys['ArrowLeft']) dx -= this.speed;
-          if (keys['ArrowRight']) dx += this.speed;
-          this.move(dx, dy);
-
-          if (keys['Enter'] && this.canShoot) {
-            bullets.push(new Bullet(this.x - 22, this.y - 2, -11, this.color, 2));
-            this.canShoot = false;
-            setTimeout(() => this.canShoot = true, 200);
-          }
-          if (keys['Period']) this.useGel();
-          if (keys['Numpad0'] || keys['Digit0']) this.useSkill();
-        }
+        ctx.fillRect(i, HALF_HEIGHT - wallHeight / 2, 1, wallHeight);
       }
-
-      takeDamage(amount, ignoreArmor = false) {
-        if (!ignoreArmor && this.armor > 0) {
-          let armorDamage = amount * 0.6;
-          let hpDamage = amount * 0.4;
-          
-          this.armor -= armorDamage;
-          if (this.armor < 0) {
-            hpDamage += Math.abs(this.armor);
-            this.armor = 0;
-          }
-          this.health -= hpDamage;
-        } else {
-          this.health -= amount;
-        }
-
-        if (this.health < 0) this.health = 0;
-        updateUI();
-      }
-    }
-
-    class GelWall {
-      constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.width = 12;
-        this.height = 60;
-        this.hp = 100;
-      }
-
-      draw() {
-        ctx.fillStyle = '#06b6d4';
-        ctx.fillRect(this.x, this.y, this.width, this.height);
-        ctx.strokeStyle = '#cff4fc';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(this.x, this.y, this.width, this.height);
-      }
-    }
-
-    class Bullet {
-      constructor(x, y, speedX, color, owner) {
-        this.x = x;
-        this.y = y;
-        this.radius = 3.5;
-        this.speedX = speedX;
-        this.color = color;
-        this.owner = owner;
-      }
-
-      draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = '#fef08a';
-        ctx.fill();
-        ctx.closePath();
-      }
-
-      update() {
-        this.x += this.speedX;
-      }
-    }
-
-    let p1 = new Character(80, canvas.height / 2, '#22c55e', true);
-    let p2 = new Character(canvas.width - 80, canvas.height / 2, '#f97316', false);
-
-    function checkGelCollision(x, y, halfW, halfH) {
-      for (let gel of gelWalls) {
-        if (x + halfW > gel.x && x - halfW < gel.x + gel.width &&
-            y + halfH > gel.y && y - halfH < gel.y + gel.height) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    function resetRound() {
-      p1.x = 80;
-      p1.y = canvas.height / 2;
-      p1.health = 100;
-      p1.armor = 100;
-      p1.gelCount = 3;
-
-      p2.x = canvas.width - 80;
-      p2.y = canvas.height / 2;
-      p2.health = 100;
-      p2.armor = 100;
-      p2.gelCount = 3;
-
-      safezone = { x: 0, y: 0, width: canvas.width, height: canvas.height, shrinkRate: 0.12 };
-      gelWalls = [];
-      bullets = [];
-      updateUI();
-    }
-
-    function updateUI() {
-      p1HealthEl.style.width = `${Math.max(0, p1.health)}%`;
-      p2HealthEl.style.width = `${Math.max(0, p2.health)}%`;
-      p1ArmorEl.style.width = `${Math.max(0, p1.armor)}%`;
-      p2ArmorEl.style.width = `${Math.max(0, p2.armor)}%`;
-
-      p1GelEl.textContent = p1.gelCount;
-      p2GelEl.textContent = p2.gelCount;
-
-      p1ScoreEl.textContent = p1Score;
-      p2ScoreEl.textContent = p2Score;
     }
 
     function gameLoop() {
-      if (!jogoRodando) return;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Atualização da Safezone
-      if (safezone.width > 220) {
-        safezone.x += safezone.shrinkRate;
-        safezone.y += safezone.shrinkRate * (canvas.height / canvas.width);
-        safezone.width -= safezone.shrinkRate * 2;
-        safezone.height -= safezone.shrinkRate * 2 * (canvas.height / canvas.width);
-      }
-
-      // Renderização do Gás Fora da Safezone
-      ctx.fillStyle = 'rgba(168, 85, 247, 0.25)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.clearRect(safezone.x, safezone.y, safezone.width, safezone.height);
-
-      ctx.strokeStyle = '#a855f7';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(safezone.x, safezone.y, safezone.width, safezone.height);
-
-      p1.update();
-      p1.draw();
-      p2.update();
-      p2.draw();
-
-      for (let i = gelWalls.length - 1; i >= 0; i--) {
-        let gel = gelWalls[i];
-        gel.draw();
-        if (gel.hp <= 0) gelWalls.splice(i, 1);
-      }
-
-      for (let i = bullets.length - 1; i >= 0; i--) {
-        let b = bullets[i];
-        b.update();
-        b.draw();
-
-        let hitGel = false;
-        for (let gel of gelWalls) {
-          if (b.x > gel.x && b.x < gel.x + gel.width && b.y > gel.y && b.y < gel.y + gel.height) {
-            gel.hp -= 25;
-            bullets.splice(i, 1);
-            hitGel = true;
-            break;
-          }
-        }
-        if (hitGel) continue;
-
-        if (b.owner === 2 && Math.hypot(b.x - p1.x, b.y - p1.y) < b.radius + 15) {
-          let damage = 22;
-          p1.takeDamage(damage);
-          bullets.splice(i, 1);
-          if (p1.health <= 0) {
-            p2Score++;
-            resetRound();
-          }
-          continue;
-        }
-
-        if (b.owner === 1 && Math.hypot(b.x - p2.x, b.y - p2.y) < b.radius + 15) {
-          let damage = 22;
-          if (p2.skillActive) damage *= 0.4; // Redução de dano por escudo
-          p2.takeDamage(damage);
-          bullets.splice(i, 1);
-          if (p2.health <= 0) {
-            p1Score++;
-            resetRound();
-          }
-          continue;
-        }
-
-        if (b.x < 0 || b.x > canvas.width) {
-          bullets.splice(i, 1);
-        }
-      }
-
+      updatePlayer();
+      render3D();
       requestAnimationFrame(gameLoop);
     }
 
-    function iniciarJogo() {
-      document.getElementById('btnStart').style.display = 'none';
-      jogoRodando = true;
-      updateUI();
-      gameLoop();
-    }
+    gameLoop();
   </script>
 </body>
 </html>
