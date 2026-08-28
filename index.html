@@ -1,158 +1,45 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Jogo 3D - Labirinto Raycasting</title>
-  <style>
-    body {
-      background-color: #0d1117;
-      color: #fff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      margin: 0;
-    }
-
-    h1 {
-      margin-bottom: 10px;
-      font-size: 24px;
-      color: #38bdf8;
-    }
-
-    canvas {
-      border: 3px solid #0284c7;
-      border-radius: 8px;
-      box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
-      background-color: #000;
-    }
-
-    .controles {
-      margin-top: 15px;
-      background: #1e293b;
-      padding: 12px 20px;
-      border-radius: 6px;
-      border-left: 4px solid #38bdf8;
-      font-size: 14px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clone do Minecraft Básico</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: sans-serif;
+        }
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            background-color: white;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+        #instructions {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
 </head>
 <body>
+    <div id="crosshair"></div>
+    <div id="instructions">
+        Clique na tela para jogar<br>
+        <b>W, A, S, D</b>: Mover<br>
+        <b>Clique Esquerdo</b>: Destruir bloco<br>
+        <b>Clique Direito</b>: Colocar bloco
+    </div>
 
-  <h1>Labirinto 3D Retro</h1>
-  <canvas id="gameCanvas" width="640" height="400"></canvas>
-
-  <div class="controles">
-    <strong>Controles:</strong> W / S (Mover) | A / D (Girar Câmera)
-  </div>
-
-  <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-
-    const MAP_SIZE = 12;
-    const map = [
-      1,1,1,1,1,1,1,1,1,1,1,1,
-      1,0,0,0,1,0,0,0,0,0,0,1,
-      1,0,1,0,1,0,1,1,1,1,0,1,
-      1,0,1,0,0,0,0,0,0,1,0,1,
-      1,0,1,1,1,1,0,1,0,1,0,1,
-      1,0,0,0,0,1,0,1,0,0,0,1,
-      1,1,1,1,0,1,0,1,1,1,0,1,
-      1,0,0,0,0,0,0,0,0,1,0,1,
-      1,0,1,1,1,1,1,1,0,1,0,1,
-      1,0,1,0,0,0,0,1,0,1,0,1,
-      1,0,0,0,1,1,0,0,0,0,0,1,
-      1,1,1,1,1,1,1,1,1,1,1,1
-    ];
-
-    let player = {
-      x: 2.5,
-      y: 2.5,
-      angle: 0,
-      speed: 0,
-      rotSpeed: 0
-    };
-
-    const FOV = Math.PI / 3;
-    const NUM_RAYS = canvas.width;
-    const HALF_HEIGHT = canvas.height / 2;
-
-    const keys = {};
-    window.addEventListener('keydown', e => keys[e.code] = true);
-    window.addEventListener('keyup', e => keys[e.code] = false);
-
-    function updatePlayer() {
-      player.rotSpeed = 0;
-      player.speed = 0;
-
-      if (keys['KeyA'] || keys['ArrowLeft']) player.rotSpeed = -0.04;
-      if (keys['KeyD'] || keys['ArrowRight']) player.rotSpeed = 0.04;
-      if (keys['KeyW'] || keys['ArrowUp']) player.speed = 0.05;
-      if (keys['KeyS'] || keys['ArrowDown']) player.speed = -0.05;
-
-      player.angle += player.rotSpeed;
-
-      let newX = player.x + Math.cos(player.angle) * player.speed;
-      let newY = player.y + Math.sin(player.angle) * player.speed;
-
-      // Colisão com paredes
-      if (map[Math.floor(newY) * MAP_SIZE + Math.floor(newX)] === 0) {
-        player.x = newX;
-        player.y = newY;
-      }
-    }
-
-    function render3D() {
-      // Teto e Chão
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(0, 0, canvas.width, HALF_HEIGHT);
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(0, HALF_HEIGHT, canvas.width, HALF_HEIGHT);
-
-      // Renderização por Raycasting
-      for (let i = 0; i < NUM_RAYS; i++) {
-        let rayAngle = (player.angle - FOV / 2) + (i / NUM_RAYS) * FOV;
-        let distance = 0;
-        let hitWall = false;
-
-        let cos = Math.cos(rayAngle);
-        let sin = Math.sin(rayAngle);
-
-        while (!hitWall && distance < 16) {
-          distance += 0.02;
-          let checkX = Math.floor(player.x + cos * distance);
-          let checkY = Math.floor(player.y + sin * distance);
-
-          if (checkX < 0 || checkX >= MAP_SIZE || checkY < 0 || checkY >= MAP_SIZE) {
-            hitWall = true;
-            distance = 16;
-          } else if (map[checkY * MAP_SIZE + checkX] > 0) {
-            hitWall = true;
-          }
-        }
-
-        // Correção do efeito de olho de peixe
-        let correctDistance = distance * Math.cos(rayAngle - player.angle);
-        let wallHeight = Math.min(canvas.height, (canvas.height / correctDistance));
-
-        // Sombreamento baseado na distância
-        let colorValue = Math.max(0, 255 - correctDistance * 18);
-        ctx.fillStyle = `rgb(0, ${Math.floor(colorValue * 0.7)}, ${colorValue})`;
-
-        ctx.fillRect(i, HALF_HEIGHT - wallHeight / 2, 1, wallHeight);
-      }
-    }
-
-    function gameLoop() {
-      updatePlayer();
-      render3D();
-      requestAnimationFrame(gameLoop);
-    }
-
-    gameLoop();
-  </script>
-</body>
-</html>
+    <script src="
