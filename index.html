@@ -2,68 +2,200 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Jogo de Tiro 1v1</title>
+  <title>Free Fire 1v1 - Battle Royale Arena</title>
   <style>
     body {
-      background-color: #121212;
+      background-color: #0b0f19;
       color: #fff;
-      font-family: sans-serif;
+      font-family: 'Impact', 'Arial Black', sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
     }
-    canvas {
-      border: 4px solid #fff;
-      background-color: #1e1e1e;
-    }
-    .placar {
-      font-size: 24px;
+
+    .hud {
+      display: flex;
+      align-items: center;
+      gap: 30px;
       margin-bottom: 10px;
     }
+
+    .player-card {
+      background: rgba(15, 23, 42, 0.8);
+      border: 2px solid #334155;
+      padding: 10px 15px;
+      border-radius: 8px;
+      width: 240px;
+    }
+
+    .player-card h2 {
+      font-size: 14px;
+      margin: 0 0 8px 0;
+      letter-spacing: 1px;
+    }
+
+    .p1 h2 { color: #22c55e; }
+    .p2 h2 { color: #f97316; }
+
+    .bar-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .label {
+      font-size: 10px;
+      width: 45px;
+      color: #94a3b8;
+    }
+
+    .bar {
+      flex-grow: 1;
+      height: 12px;
+      background-color: #1e293b;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid #475569;
+    }
+
+    .fill {
+      height: 100%;
+      width: 100%;
+      transition: width 0.1s ease-out;
+    }
+
+    .fill.hp { background-color: #ef4444; }
+    .fill.armor { background-color: #3b82f6; }
+
+    .status {
+      font-size: 11px;
+      color: #cbd5e1;
+      margin-top: 6px;
+      font-family: sans-serif;
+    }
+
+    .score {
+      font-size: 14px;
+      margin: 6px 0 0 0;
+      color: #e2e8f0;
+    }
+
+    .vs-badge {
+      font-size: 28px;
+      color: #eab308;
+      text-shadow: 0 0 10px rgba(234, 179, 8, 0.5);
+    }
+
+    canvas {
+      border: 3px solid #f59e0b;
+      background-color: #1e293b;
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+      border-radius: 6px;
+    }
+
+    button {
+      margin-bottom: 10px;
+      padding: 12px 30px;
+      font-size: 20px;
+      font-weight: bold;
+      background: linear-gradient(185deg, #f59e0b, #d97706);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      text-shadow: 1px 1px 2px #000;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    button:hover {
+      filter: brightness(1.1);
+    }
+
     .instrucoes {
       margin-top: 10px;
-      font-size: 14px;
-      color: #ccc;
-      text-align: center;
+      display: flex;
+      gap: 20px;
+      font-family: sans-serif;
+      font-size: 12px;
     }
-    button {
-      margin-bottom: 15px;
-      padding: 10px 20px;
-      font-size: 16px;
-      font-weight: bold;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #45a049;
+
+    .controls-box {
+      background: #1e293b;
+      padding: 8px 12px;
+      border-radius: 4px;
+      border-left: 4px solid #f59e0b;
     }
   </style>
 </head>
 <body>
 
-  <div class="placar">
-    <span style="color: #4CAF50;">Jogador 1: <span id="p1Score">0</span></span> | 
-    <span style="color: #FF5722;">Jogador 2: <span id="p2Score">0</span></span>
+  <div class="hud">
+    <div class="player-card p1">
+      <h2>JOGADOR 1 (SQUAD VERDE)</h2>
+      <div class="bar-container">
+        <span class="label">VIDA</span>
+        <div class="bar"><div id="p1Health" class="fill hp"></div></div>
+      </div>
+      <div class="bar-container">
+        <span class="label">COLETE</span>
+        <div class="bar"><div id="p1Armor" class="fill armor"></div></div>
+      </div>
+      <div class="status">
+        <span>GEL: <strong id="p1Gel">2</strong></span> | 
+        <span>HABILIDADE [E]: <strong id="p1Skill">PRONTA</strong></span>
+      </div>
+      <p class="score">ABATES: <span id="p1Score">0</span></p>
+    </div>
+
+    <div class="vs-badge">FF 1V1</div>
+
+    <div class="player-card p2">
+      <h2>JOGADOR 2 (SQUAD LARANJA)</h2>
+      <div class="bar-container">
+        <span class="label">VIDA</span>
+        <div class="bar"><div id="p2Health" class="fill hp"></div></div>
+      </div>
+      <div class="bar-container">
+        <span class="label">COLETE</span>
+        <div class="bar"><div id="p2Armor" class="fill armor"></div></div>
+      </div>
+      <div class="status">
+        <span>GEL: <strong id="p2Gel">2</strong></span> | 
+        <span>HABILIDADE [0]: <strong id="p2Skill">PRONTA</strong></span>
+      </div>
+      <p class="score">ABATES: <span id="p2Score">0</span></p>
+    </div>
   </div>
 
-  <button id="btnStart" onclick="iniciarJogo()">CLIQUE AQUI PARA JOGAR</button>
+  <button id="btnStart" onclick="iniciarJogo()">START BATTLE ROYALE</button>
 
-  <canvas id="gameCanvas" width="800" height="400"></canvas>
+  <canvas id="gameCanvas" width="900" height="500"></canvas>
 
   <div class="instrucoes">
-    <strong>Jogador 1 (Verde):</strong> W, A, S, D para mover | ESPAÇO para atirar<br>
-    <strong>Jogador 2 (Laranja):</strong> Setas para mover | ENTER para atirar
+    <div class="controls-box">
+      <strong>J1 (Verde):</strong> WASD (Andar) | ESPAÇO (Atirar) | Q (Gel) | E (Cura)
+    </div>
+    <div class="controls-box">
+      <strong>J2 (Laranja):</strong> Setas (Andar) | ENTER (Atirar) | . (Gel) | 0 (Escudo)
+    </div>
   </div>
 
   <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
+
+    const p1HealthEl = document.getElementById('p1Health');
+    const p2HealthEl = document.getElementById('p2Health');
+    const p1ArmorEl = document.getElementById('p1Armor');
+    const p2ArmorEl = document.getElementById('p2Armor');
+    const p1GelEl = document.getElementById('p1Gel');
+    const p2GelEl = document.getElementById('p2Gel');
+    const p1SkillEl = document.getElementById('p1Skill');
+    const p2SkillEl = document.getElementById('p2Skill');
     const p1ScoreEl = document.getElementById('p1Score');
     const p2ScoreEl = document.getElementById('p2Score');
 
@@ -75,46 +207,220 @@
     window.addEventListener('keydown', e => keys[e.code] = true);
     window.addEventListener('keyup', e => keys[e.code] = false);
 
-    class Player {
+    // Sistema de Safezone (Gás)
+    let safezone = {
+      x: 0,
+      y: 0,
+      width: canvas.width,
+      height: canvas.height,
+      shrinkRate: 0.15
+    };
+
+    let gelWalls = [];
+    let bullets = [];
+
+    class Character {
       constructor(x, y, color, isPlayerOne) {
         this.x = x;
         this.y = y;
-        this.size = 20;
+        this.radius = 16;
         this.color = color;
         this.speed = 4;
         this.isPlayerOne = isPlayerOne;
+        
+        this.health = 100;
+        this.armor = 100;
+        this.gelCount = 2;
+        
         this.canShoot = true;
+        this.canGel = true;
+        this.canSkill = true;
+        
+        this.skillActive = false;
+        this.skillTimer = 0;
       }
 
       draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+
+        // Aura de Habilidade Ativa
+        if (this.skillActive) {
+          ctx.beginPath();
+          ctx.arc(0, 0, this.radius + 12, 0, Math.PI * 2);
+          ctx.fillStyle = this.isPlayerOne ? 'rgba(34, 197, 94, 0.25)' : 'rgba(59, 130, 246, 0.3)';
+          ctx.fill();
+          ctx.strokeStyle = this.isPlayerOne ? '#22c55e' : '#3b82f6';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+
+        // Corpo do Personagem
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
         ctx.fillStyle = this.color;
-        ctx.fillRect(this.x, this.y, this.size, this.size);
+        ctx.fill();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#000000';
+        ctx.stroke();
+
+        // Capacete/Cabeça
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius - 6, 0, Math.PI * 2);
+        ctx.fillStyle = '#334155';
+        ctx.fill();
+
+        // Arma
+        ctx.fillStyle = '#0f172a';
+        if (this.isPlayerOne) {
+          ctx.fillRect(6, -3, 18, 6);
+        } else {
+          ctx.fillRect(-24, -3, 18, 6);
+        }
+
+        ctx.restore();
+      }
+
+      move(dx, dy) {
+        let nextX = this.x + dx;
+        let nextY = this.y + dy;
+
+        if (nextX >= this.radius && nextX <= canvas.width - this.radius) {
+          if (!checkGelCollision(nextX, this.y, this.radius)) this.x = nextX;
+        }
+        if (nextY >= this.radius && nextY <= canvas.height - this.radius) {
+          if (!checkGelCollision(this.x, nextY, this.radius)) this.y = nextY;
+        }
+      }
+
+      useGel() {
+        if (this.gelCount > 0 && this.canGel) {
+          const wallX = this.isPlayerOne ? this.x + 35 : this.x - 45;
+          gelWalls.push(new GelWall(wallX, this.y - 30));
+          this.gelCount--;
+          this.canGel = false;
+          setTimeout(() => this.canGel = true, 500);
+          updateUI();
+        }
+      }
+
+      useSkill() {
+        if (this.canSkill) {
+          this.skillActive = true;
+          this.canSkill = false;
+          
+          if (this.isPlayerOne) {
+            p1SkillEl.textContent = 'ATIVO';
+          } else {
+            p2SkillEl.textContent = 'ATIVO';
+          }
+
+          // Duração da habilidade: 5s
+          setTimeout(() => {
+            this.skillActive = false;
+            if (this.isPlayerOne) p1SkillEl.textContent = 'RECARREGANDO';
+            else p2SkillEl.textContent = 'RECARREGANDO';
+
+            // Cooldown: 12s
+            setTimeout(() => {
+              this.canSkill = true;
+              if (this.isPlayerOne) p1SkillEl.textContent = 'PRONTA';
+              else p2SkillEl.textContent = 'PRONTA';
+              updateUI();
+            }, 12000);
+          }, 5000);
+        }
       }
 
       update() {
-        if (this.isPlayerOne) {
-          if (keys['KeyW'] && this.y > 0) this.y -= this.speed;
-          if (keys['KeyS'] && this.y < canvas.height - this.size) this.y += this.speed;
-          if (keys['KeyA'] && this.x > 0) this.x -= this.speed;
-          if (keys['KeyD'] && this.x < canvas.width / 2 - this.size) this.x += this.speed;
-
-          if (keys['Space'] && this.canShoot) {
-            bullets.push(new Bullet(this.x + this.size, this.y + this.size / 2, 8, this.color, 1));
-            this.canShoot = false;
-            setTimeout(() => this.canShoot = true, 250);
+        if (this.skillActive) {
+          if (this.isPlayerOne) {
+            if (this.health < 100) this.health += 0.1;
+            this.speed = 5.5;
+          } else {
+            this.speed = 4;
           }
         } else {
-          if (keys['ArrowUp'] && this.y > 0) this.y -= this.speed;
-          if (keys['ArrowDown'] && this.y < canvas.height - this.size) this.y += this.speed;
-          if (keys['ArrowLeft'] && this.x > canvas.width / 2) this.x -= this.speed;
-          if (keys['ArrowRight'] && this.x < canvas.width - this.size) this.x += this.speed;
+          this.speed = 4;
+        }
+
+        // Dano do Gás
+        if (this.x < safezone.x || this.x > safezone.x + safezone.width ||
+            this.y < safezone.y || this.y > safezone.y + safezone.height) {
+          this.takeDamage(0.4, true);
+        }
+
+        // Controles J1
+        if (this.isPlayerOne) {
+          let dx = 0, dy = 0;
+          if (keys['KeyW']) dy -= this.speed;
+          if (keys['KeyS']) dy += this.speed;
+          if (keys['KeyA']) dx -= this.speed;
+          if (keys['KeyD']) dx += this.speed;
+          this.move(dx, dy);
+
+          if (keys['Space'] && this.canShoot) {
+            bullets.push(new Bullet(this.x + 20, this.y, 12, this.color, 1));
+            this.canShoot = false;
+            setTimeout(() => this.canShoot = true, 180);
+          }
+          if (keys['KeyQ']) this.useGel();
+          if (keys['KeyE']) this.useSkill();
+        } 
+        // Controles J2
+        else {
+          let dx = 0, dy = 0;
+          if (keys['ArrowUp']) dy -= this.speed;
+          if (keys['ArrowDown']) dy += this.speed;
+          if (keys['ArrowLeft']) dx -= this.speed;
+          if (keys['ArrowRight']) dx += this.speed;
+          this.move(dx, dy);
 
           if (keys['Enter'] && this.canShoot) {
-            bullets.push(new Bullet(this.x, this.y + this.size / 2, -8, this.color, 2));
+            bullets.push(new Bullet(this.x - 20, this.y, -12, this.color, 2));
             this.canShoot = false;
-            setTimeout(() => this.canShoot = true, 250);
+            setTimeout(() => this.canShoot = true, 180);
           }
+          if (keys['Period']) this.useGel();
+          if (keys['Numpad0'] || keys['Digit0']) this.useSkill();
         }
+      }
+
+      takeDamage(amount, ignoreArmor = false) {
+        if (!ignoreArmor && this.armor > 0) {
+          let armorDamage = amount * 0.6;
+          let hpDamage = amount * 0.4;
+          
+          this.armor -= armorDamage;
+          if (this.armor < 0) {
+            hpDamage += Math.abs(this.armor);
+            this.armor = 0;
+          }
+          this.health -= hpDamage;
+        } else {
+          this.health -= amount;
+        }
+
+        if (this.health < 0) this.health = 0;
+        updateUI();
+      }
+    }
+
+    class GelWall {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.width = 12;
+        this.height = 60;
+        this.hp = 120;
+      }
+
+      draw() {
+        ctx.fillStyle = '#06b6d4';
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+        ctx.strokeStyle = '#cff4fc';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(this.x, this.y, this.width, this.height);
       }
     }
 
@@ -131,7 +437,7 @@
       draw() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = this.color;
+        ctx.fillStyle = '#fef08a';
         ctx.fill();
         ctx.closePath();
       }
@@ -141,23 +447,49 @@
       }
     }
 
-    let p1 = new Player(50, canvas.height / 2 - 10, '#4CAF50', true);
-    let p2 = new Player(canvas.width - 70, canvas.height / 2 - 10, '#FF5722', false);
-    let bullets = [];
+    let p1 = new Character(80, canvas.height / 2, '#22c55e', true);
+    let p2 = new Character(canvas.width - 80, canvas.height / 2, '#f97316', false);
 
-    function checkCollision(bullet, player) {
-      return bullet.x > player.x &&
-             bullet.x < player.x + player.size &&
-             bullet.y > player.y &&
-             bullet.y < player.y + player.size;
+    function checkGelCollision(x, y, radius) {
+      for (let gel of gelWalls) {
+        if (x + radius > gel.x && x - radius < gel.x + gel.width &&
+            y + radius > gel.y && y - radius < gel.y + gel.height) {
+          return true;
+        }
+      }
+      return false;
     }
 
-    function resetPositions() {
-      p1.x = 50;
-      p1.y = canvas.height / 2 - 10;
-      p2.x = canvas.width - 70;
-      p2.y = canvas.height / 2 - 10;
+    function resetRound() {
+      p1.x = 80;
+      p1.y = canvas.height / 2;
+      p1.health = 100;
+      p1.armor = 100;
+      p1.gelCount = 2;
+
+      p2.x = canvas.width - 80;
+      p2.y = canvas.height / 2;
+      p2.health = 100;
+      p2.armor = 100;
+      p2.gelCount = 2;
+
+      safezone = { x: 0, y: 0, width: canvas.width, height: canvas.height, shrinkRate: 0.15 };
+      gelWalls = [];
       bullets = [];
+      updateUI();
+    }
+
+    function updateUI() {
+      p1HealthEl.style.width = `${Math.max(0, p1.health)}%`;
+      p2HealthEl.style.width = `${Math.max(0, p2.health)}%`;
+      p1ArmorEl.style.width = `${Math.max(0, p1.armor)}%`;
+      p2ArmorEl.style.width = `${Math.max(0, p2.armor)}%`;
+
+      p1GelEl.textContent = p1.gelCount;
+      p2GelEl.textContent = p2.gelCount;
+
+      p1ScoreEl.textContent = p1Score;
+      p2ScoreEl.textContent = p2Score;
     }
 
     function gameLoop() {
@@ -165,33 +497,70 @@
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      ctx.strokeStyle = '#333';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(canvas.width / 2, 0);
-      ctx.lineTo(canvas.width / 2, canvas.height);
-      ctx.stroke();
+      // Safezone / Gás
+      if (safezone.width > 200) {
+        safezone.x += safezone.shrinkRate;
+        safezone.y += safezone.shrinkRate * (canvas.height / canvas.width);
+        safezone.width -= safezone.shrinkRate * 2;
+        safezone.height -= safezone.shrinkRate * 2 * (canvas.height / canvas.width);
+      }
+
+      ctx.fillStyle = 'rgba(168, 85, 247, 0.25)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(safezone.x, safezone.y, safezone.width, safezone.height);
+
+      ctx.strokeStyle = '#a855f7';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(safezone.x, safezone.y, safezone.width, safezone.height);
 
       p1.update();
       p1.draw();
       p2.update();
       p2.draw();
 
+      for (let i = gelWalls.length - 1; i >= 0; i--) {
+        let gel = gelWalls[i];
+        gel.draw();
+        if (gel.hp <= 0) gelWalls.splice(i, 1);
+      }
+
       for (let i = bullets.length - 1; i >= 0; i--) {
         let b = bullets[i];
         b.update();
         b.draw();
 
-        if (b.owner === 1 && checkCollision(b, p2)) {
-          p1Score++;
-          p1ScoreEl.textContent = p1Score;
-          resetPositions();
-          break;
-        } else if (b.owner === 2 && checkCollision(b, p1)) {
-          p2Score++;
-          p2ScoreEl.textContent = p2Score;
-          resetPositions();
-          break;
+        let hitGel = false;
+        for (let gel of gelWalls) {
+          if (b.x > gel.x && b.x < gel.x + gel.width && b.y > gel.y && b.y < gel.y + gel.height) {
+            gel.hp -= 25;
+            bullets.splice(i, 1);
+            hitGel = true;
+            break;
+          }
+        }
+        if (hitGel) continue;
+
+        if (b.owner === 2 && Math.hypot(b.x - p1.x, b.y - p1.y) < b.radius + p1.radius) {
+          let damage = 22;
+          p1.takeDamage(damage);
+          bullets.splice(i, 1);
+          if (p1.health <= 0) {
+            p2Score++;
+            resetRound();
+          }
+          continue;
+        }
+
+        if (b.owner === 1 && Math.hypot(b.x - p2.x, b.y - p2.y) < b.radius + p2.radius) {
+          let damage = 22;
+          if (p2.skillActive) damage *= 0.4;
+          p2.takeDamage(damage);
+          bullets.splice(i, 1);
+          if (p2.health <= 0) {
+            p1Score++;
+            resetRound();
+          }
+          continue;
         }
 
         if (b.x < 0 || b.x > canvas.width) {
@@ -205,6 +574,7 @@
     function iniciarJogo() {
       document.getElementById('btnStart').style.display = 'none';
       jogoRodando = true;
+      updateUI();
       gameLoop();
     }
   </script>
